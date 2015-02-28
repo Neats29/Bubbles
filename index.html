@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>D3 Page Template</title>
+        <link rel="stylesheet" type="text/css" href="main.css">
+    </head>
+    <body>
+        <div>
+<!--            <button>Click Me to add a bar!</button>-->
+        </div>
+        
+        <script src="http://d3js.org/d3.v3.min.js"></script>
+        <script type="text/javascript">
+            
+            var width = 1000;
+            var height = 600;
+
+var nodes = d3.range(100).map(function(){
+    return { radius: Math.random() * 22 + 2 }; //1 chages the size of the radius, so random r + 1 
+    //annonymous object? {}
+    }),
+    root = nodes[0], //?
+    color = d3.scale.category20(); //creates an ordinal scale with a range of 20 categorical colors.
+
+root.radius = 0;  //?
+root.fixed = true; //if false, they will just stay together
+
+var force = d3.layout.force()
+                .gravity(0.05)
+                .charge(function(d, i) { return i ? 0 : -2000; }) //A neg value results in node repulsion, while a pos value results in node attraction.
+                .nodes(nodes)
+                .size([width, height]) //where it sits (middle)
+
+force.start(); //Starts the simulation
+
+var svg = d3.select("body")
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+svg.selectAll("circle")
+    .data(nodes.slice(1)) //why slice, play
+    .enter()
+    .append("circle")
+    .attr("r", function(d){
+                    return d.radius;
+                })
+    .style("fill", function(d, i){
+                    return color(i % 12);
+                });
+
+//*********
+force.on("tick", function(e){ //don't get
+    var q = d3.geom.quadtree(nodes), 
+        i = 0,
+        n = nodes.length;
+    
+    while (++i < n) q.visit(collide(nodes[i])); //?
+    
+    svg.selectAll("circle")
+        .attr("cx", function(d) {
+                        return d.x;
+                    })
+        .attr("cy", function(d) {
+                        return d.y;
+                    })
+});
+
+
+svg.on("mousemove", function(){
+    var p1 = d3.mouse(this); //Returns the x and y coordinates of the current d3.event, relative to the specified container(svg)
+    root.px = p1[0]; 
+    root.py = p1[1]; //this means take the root node (which is 1 node with a r of 0) and let it be where the mouse is, so set its x and why coordinate to that of the mouse (?)
+    force.resume(); //play
+});
+function collide(node) {
+  var r = node.radius + 16,
+      nx1 = node.x - r,
+      nx2 = node.x + r,
+      ny1 = node.y - r,
+      ny2 = node.y + r;
+  return function(quad, x1, y1, x2, y2) {
+    if (quad.point && (quad.point !== node)) {
+      var x = node.x - quad.point.x,
+          y = node.y - quad.point.y,
+          l = Math.sqrt(x * x + y * y),
+          r = node.radius + quad.point.radius;
+      if (l < r) {
+        l = (l - r) / l * .5;
+        node.x -= x *= l;
+        node.y -= y *= l;
+        quad.point.x += x;
+        quad.point.y += y;
+      }
+    }
+    return x1 > nx2 || x2 < nx1 || y1 > ny2 || y2 < ny1;
+  };
+}
+            
+        </script>
+    </body>
+</html>
