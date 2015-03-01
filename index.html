@@ -17,7 +17,7 @@
             var height = 600;
 
 var nodes = d3.range(100).map(function(){
-    return { radius: Math.random() * 22 + 2 }; //1 chages the size of the radius, so random r + 1 
+    return { radius: Math.random() * 30 + 5 }; //1 chages the size of the radius, so random r + 1 
     //annonymous object? {}
     }),
     root = nodes[0], //?
@@ -47,7 +47,7 @@ svg.selectAll("circle")
                     return d.radius;
                 })
     .style("fill", function(d, i){
-                    return color(i % 12);
+                    return color(i % 5);
                 });
 
 //*********
